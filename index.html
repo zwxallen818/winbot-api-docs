@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>窗宝遥控页蓝牙协议接口文档</title>
+<style>
+  :root {
+    --c-brand: #3877f5;
+    --c-text: #253746;
+    --c-text-secondary: #5a7aa5;
+    --c-bg: #f7f8fa;
+    --c-bg-card: #ffffff;
+    --c-border: #d8dee6;
+    --c-code-bg: #f0f3f8;
+    --c-red: #d32f2f;
+    --c-green: #2e7d32;
+    --c-orange: #e65100;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    color: var(--c-text);
+    background: var(--c-bg);
+    line-height: 1.7;
+    padding: 0;
+  }
+  header {
+    background: linear-gradient(135deg, var(--c-brand), #1a56e0);
+    color: #fff;
+    padding: 40px 24px 32px;
+    text-align: center;
+  }
+  header h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+  header p { font-size: 14px; opacity: 0.85; }
+  nav {
+    background: #fff;
+    border-bottom: 1px solid var(--c-border);
+    padding: 0 24px;
+    overflow-x: auto;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  }
+  nav a {
+    display: inline-block;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--c-text-secondary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: .15s;
+  }
+  nav a:hover, nav a.active { color: var(--c-brand); border-bottom-color: var(--c-brand); }
+  main { max-width: 860px; margin: 0 auto; padding: 32px 24px 80px; }
+  section { margin-bottom: 48px; }
+  h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--c-brand);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h2 .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .badge-topic { background: #ebf2ff; color: var(--c-brand); }
+  .badge-common { background: #e8f5e9; color: var(--c-green); }
+  .badge-legacy { background: #fff3e0; color: var(--c-orange); }
+
+  h3 { font-size: 16px; margin: 20px 0 10px; }
+  .card {
+    background: var(--c-bg-card);
+    border: 1px solid var(--c-border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .card h4 { font-size: 15px; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: var(--c-text-secondary); margin-bottom: 10px; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin: 12px 0;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 12px;
+    border: 1px solid var(--c-border);
+  }
+  th {
+    background: #f0f3f8;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--c-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+  td:first-child { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 12px; white-space: nowrap; }
+  td:nth-child(2) { font-family: "SF Mono", "Fira Code", "Consolas", monospace; font-size: 12px; }
+  .type-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 4px;
+  }
+  .type-string { background: #e3f2fd; color: #1565c0; }
+  .type-number { background: #fce4ec; color: #c62828; }
+  .type-object { background: #f3e5f5; color: #6a1b9a; }
+  .type-boolean { background: #fff8e1; color: #f57f17; }
+
+  pre {
+    background: var(--c-code-bg);
+    border: 1px solid var(--c-border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 10px 0;
+  }
+  code {
+    font-family: "SF Mono", "Fira Code", "Consolas", monospace;
+    font-size: 12px;
+    background: var(--c-code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  pre code { background: none; padding: 0; }
+
+  .note {
+    background: #fff8e1;
+    border-left: 3px solid #ffb300;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin: 12px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .note-warn {
+    background: #ffebee;
+    border-left-color: var(--c-red);
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    font-size: 13px;
+  }
+  .flow-arrow { color: var(--c-brand); font-weight: 700; margin: 0 4px; }
+  .flow-label {
+    display: inline-block;
+    background: var(--c-brand);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .toc { list-style: none; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--c-brand); text-decoration: none; font-size: 14px; }
+  .toc a:hover { text-decoration: underline; }
+
+  @media (max-width: 600px) {
+    main { padding: 20px 12px 60px; }
+    .card { padding: 14px 16px; }
+    table { font-size: 11px; }
+    th, td { padding: 6px 8px; }
+    pre { font-size: 11px; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>窗宝遥控页 — 蓝牙协议接口文档</h1>
+  <p>v260526 · 适用于泰山/贝多芬/白鲨S 机型 · 预研调试专用</p>
+</header>
+
+<nav>
+  <a href="#overview">概述</a>
+  <a href="#base">通用层</a>
+  <a href="#move">方向移动</a>
+  <a href="#setProperties">硬件属性</a>
+  <a href="#sprayWater">手动喷水</a>
+  <a href="#clean">清洁命令</a>
+  <a href="#getProperties">读取属性</a>
+  <a href="#wheelMove">摇杆(旧)</a>
+  <a href="#flows">时序流程</a>
+</nav>
+
+<main>
+
+<!-- ==================== 概述 ==================== -->
+<section id="overview">
+  <h2>概述</h2>
+  <p>本文档描述窗宝遥控页面（<code>/remotestick</code>）中 H5 与固件之间的全部蓝牙通信接口。所有蓝牙数据通过 <code>sendBluetoothData(topic, payload)</code> 函数发送，底层使用 MQTT over BLE 传输。</p>
+  <br>
+  <table>
+    <tr><th>接口</th><th>Topic</th><th>方向</th><th>频率</th><th>说明</th></tr>
+    <tr>
+      <td><a href="#move">方向移动</a></td>
+      <td><code>move</code></td>
+      <td>H5 → FW</td>
+      <td>按下即刻 + 100ms 轮询</td>
+      <td>D-Pad 十字键方向控制</td>
+    </tr>
+    <tr>
+      <td><a href="#setProperties">硬件属性设置</a></td>
+      <td><code>setProperties</code></td>
+      <td>H5 → FW</td>
+      <td>用户操作时单次</td>
+      <td>风机/水泵/滚刷参数下发</td>
+    </tr>
+    <tr>
+      <td><a href="#sprayWater">手动喷水</a></td>
+      <td><code>sprayWater</code></td>
+      <td>H5 → FW</td>
+      <td>用户点击时单次</td>
+      <td>触发一次喷水</td>
+    </tr>
+    <tr>
+      <td><a href="#clean">清洁命令</a></td>
+      <td><code>clean</code></td>
+      <td>H5 → FW</td>
+      <td>用户操作时单次</td>
+      <td>开始/暂停/继续/停止清洁</td>
+    </tr>
+    <tr>
+      <td><a href="#getProperties">读取属性</a></td>
+      <td><code>getProperties</code></td>
+      <td>H5 → FW</td>
+      <td>进入页面/轮询</td>
+      <td>读取当前硬件状态</td>
+    </tr>
+    <tr>
+      <td><a href="#wheelMove">摇杆移动 (旧)</a></td>
+      <td><code>wheelMove</code></td>
+      <td>H5 → FW</td>
+      <td>100ms 轮询</td>
+      <td>全向摇杆，本版方向键不用</td>
+    </tr>
+  </table>
+</section>
+
+<!-- ==================== 通用层 ==================== -->
+<section id="base">
+  <h2><span class="badge badge-common">通用层</span> 自动注入字段 & 加密规则</h2>
+
+  <div class="card">
+    <h4>sendBluetoothData(topic, payload)</h4>
+    <p>所有蓝牙数据发送的入口函数。<strong>框架会自动为每个 payload 注入以下字段：</strong></p>
+    <table>
+      <tr><th>字段</th><th>类型</th><th>生成规则</th><th>说明</th></tr>
+      <tr>
+        <td>ts</td><td><span class="type-tag type-number">number</span></td>
+        <td><code>Math.round(Date.now() / 1000)</code></td>
+        <td>Unix 秒级时间戳，用于固件判断指令时效</td>
+      </tr>
+      <tr>
+        <td>seq</td><td><span class="type-tag type-number">number</span></td>
+        <td><code>0~999 循环递增</code></td>
+        <td>请求序列号，用于日志追踪和去重</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>加密规则</h4>
+    <table>
+      <tr><th>固件版本</th><th>加密策略</th></tr>
+      <tr><td>&le; 1.2.5</td><td>仅 <code>setWifiList</code>、<code>SetApconfigV2</code> 两个 topic 加密</td></tr>
+      <tr><td>&gt; 1.2.5</td><td>全部 topic 加密，但以下 <strong>豁免列表</strong> 除外</td></tr>
+    </table>
+    <br>
+    <p><strong>豁免加密的 topic（固件 &gt; 1.2.5 时仍不加密）：</strong></p>
+    <pre><code>wheelsStart, wheelMove, move, auth_challenge, auth_verify,
+initCentalManager, conPeripheralWithName, scanPeripherals,
+downloadBinFile, downloadVoiceBinFile</code></pre>
+    <div class="note note-warn">
+      <strong>重要：</strong><code>setProperties</code> 和 <code>clean</code> 在新固件上会被 AES-CCM 加密，固件收到后需先解密再解析 JSON。
+    </div>
+  </div>
+
+  <div class="card">
+    <h4>通用 payload 结构</h4>
+    <p>发送前框架会将用户 payload 与自动字段合并：</p>
+    <pre><code>// 用户调用：sendBluetoothData('move', { act: 'forward' })
+// 实际发送：
+{
+  "act": "forward",   // 用户字段
+  "ts": 1768363200,   // 框架自动注入
+  "seq": 42           // 框架自动注入（0-999 循环）
+}</code></pre>
+  </div>
+</section>
+
+<!-- ==================== 方向移动 ==================== -->
+<section id="move">
+  <h2><span class="badge badge-topic">Topic: move</span> 方向移动</h2>
+
+  <div class="card">
+    <h4>协议定义</h4>
+    <table>
+      <tr><th>Topic</th><td><code>move</code></td></tr>
+      <tr><th>方向</th><td>H5 → 固件</td></tr>
+      <tr><th>加密</th><td>豁免（不加密）</td></tr>
+      <tr><th>触发方式</th><td>用户按下方向按钮</td></tr>
+      <tr><th>发送策略</th><td>按下时立即发一条，随后每 <strong>100ms</strong> 定时轮询同一条指令</td></tr>
+      <tr><th>停止策略</th><td>用户松手时停止轮询，不再发送</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>Payload 参数</h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr>
+        <td>act</td>
+        <td><span class="type-tag type-string">string</span></td>
+        <td>是</td>
+        <td>移动方向，取值见下表</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>act 取值</h4>
+    <table>
+      <tr><th>值</th><th>UI 文本</th><th>含义</th></tr>
+      <tr><td><code>forward</code></td><td>前进</td><td>向上移动</td></tr>
+      <tr><td><code>backward</code></td><td>后退</td><td>向下移动</td></tr>
+      <tr><td><code>left</code></td><td>左转</td><td>向左转向</td></tr>
+      <tr><td><code>right</code></td><td>右转</td><td>向右转向</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>外窗方向映射</h4>
+    <p>当用户选择 <strong>外窗模式</strong>（windowType = <code>outer</code>）时，左右方向会交换后再发送：</p>
+    <table>
+      <tr><th>用户操作</th><th>内窗发送</th><th>外窗发送</th></tr>
+      <tr><td>左转</td><td><code>left</code></td><td><code>right</code></td></tr>
+      <tr><td>右转</td><td><code>right</code></td><td><code>left</code></td></tr>
+      <tr><td>前进/后退</td><td colspan="2" style="text-align:center">不变</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>完整示例</h4>
+    <pre><code>// 用户按下「前进」按钮，内窗模式
+// 第 1 条（立即）：
+{ "act": "forward", "ts": 1768363200, "seq": 41 }
+
+// 100ms 后第 2 条：
+{ "act": "forward", "ts": 1768363201, "seq": 42 }
+
+// ...持续轮询直到松手...
+
+// 用户按下「左转」按钮，外窗模式 → 实际发 right
+{ "act": "right", "ts": 1768363202, "seq": 43 }</code></pre>
+  </div>
+</section>
+
+<!-- ==================== 硬件属性 ==================== -->
+<section id="setProperties">
+  <h2><span class="badge badge-topic">Topic: setProperties</span> 硬件属性设置</h2>
+
+  <div class="card">
+    <h4>协议定义</h4>
+    <table>
+      <tr><th>Topic</th><td><code>setProperties</code></td></tr>
+      <tr><th>方向</th><td>H5 → 固件</td></tr>
+      <tr><th>加密</th><td>固件 &gt; 1.2.5 时 AES-CCM 加密</td></tr>
+      <tr><th>触发方式</th><td>用户操作开关/滑块/按钮</td></tr>
+      <tr><th>发送策略</th><td>每次操作单次发送（非轮询）</td></tr>
+      <tr><th>说明</th><td>每次发送 <strong>必须包含对应模块的全部字段</strong>（全量覆盖），不能只发变更字段</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>Payload 顶层结构</h4>
+    <pre><code>{
+  "hardware": {
+    "模块名": { /* 模块参数 */ }
+  }
+}</code></pre>
+    <p>所有硬件模块都嵌套在 <code>hardware</code> 对象下。下面列出遥控页用到的三个模块。</p>
+  </div>
+
+  <!-- 吸附风机 -->
+  <div class="card">
+    <h4>模块一：吸附风机 <code>suction_fan</code></h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>范围</th><th>说明</th></tr>
+      <tr>
+        <td>enable</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0</code> | <code>1</code></td>
+        <td>风机开关：0=关闭，1=开启</td>
+      </tr>
+      <tr>
+        <td>vacuum_level</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>1 ~ 5</code></td>
+        <td>吸力档位（UI 上为开关，此值保持上次值或默认 3）</td>
+      </tr>
+    </table>
+    <pre><code>// 打开吸附风机
+sendBluetoothData('setProperties', {
+  hardware: {
+    suction_fan: {
+      enable: 1,
+      vacuum_level: 3
+    }
+  }
+})</code></pre>
+  </div>
+
+  <!-- 水泵 -->
+  <div class="card">
+    <h4>模块二：水泵 <code>water_pump</code></h4>
+    <p style="font-size:12px;color:var(--c-text-secondary)">注：当前遥控页通过 <code>hideWaterPump</code> prop 隐藏了水泵 UI，但协议仍保留供后续使用。</p>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>范围</th><th>说明</th></tr>
+      <tr>
+        <td>enable</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0</code> | <code>1</code></td>
+        <td>水泵开关：0=关闭，1=开启</td>
+      </tr>
+      <tr>
+        <td>spray_amount</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>1 ~ 5</code></td>
+        <td>喷水量档位，默认 3</td>
+      </tr>
+      <tr>
+        <td>work_interval</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0 ~ 19</code> 秒</td>
+        <td>工作间隔，默认 3 秒</td>
+      </tr>
+      <tr>
+        <td>stop_interval</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0 ~ 19</code> 秒</td>
+        <td>停止间隔，默认 3 秒</td>
+      </tr>
+    </table>
+    <pre><code>// 打开水泵，3档喷水量，工作5秒停2秒
+sendBluetoothData('setProperties', {
+  hardware: {
+    water_pump: {
+      enable: 1,
+      spray_amount: 3,
+      work_interval: 5,
+      stop_interval: 2
+    }
+  }
+})</code></pre>
+  </div>
+
+  <!-- 滚刷 -->
+  <div class="card">
+    <h4>模块三：滚刷 <code>roller_brush</code></h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>范围</th><th>说明</th></tr>
+      <tr>
+        <td>enable</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0</code> | <code>1</code></td>
+        <td>滚刷开关：0=关闭，1=开启</td>
+      </tr>
+      <tr>
+        <td>direction</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>1</code> | <code>2</code></td>
+        <td>旋转方向：1=正转，2=反转</td>
+      </tr>
+      <tr>
+        <td>index</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>1</code> | <code>2</code></td>
+        <td>滚刷选择：1=前滚刷，2=后滚刷</td>
+      </tr>
+      <tr>
+        <td>speed_level</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>1 ~ 10</code></td>
+        <td>转速档位（对应 10~100 rpm），默认 6</td>
+      </tr>
+    </table>
+    <div class="note">
+      <strong>转速换算：</strong>实际 RPM = speed_level × 10。speed_level=6 → 60rpm，speed_level=10 → 100rpm。
+    </div>
+    <pre><code>// 开启前滚刷正转，6档转速（60rpm）
+sendBluetoothData('setProperties', {
+  hardware: {
+    roller_brush: {
+      enable: 1,
+      direction: 1,
+      index: 1,
+      speed_level: 6
+    }
+  }
+})</code></pre>
+  </div>
+
+  <div class="card">
+    <h4>读取属性（Store 回传）</h4>
+    <p>固件应向 H5 回传当前硬件状态，数据结构镜像下发格式，建议在以下时机回传：</p>
+    <ul style="font-size:13px;padding-left:20px;color:var(--c-text-secondary)">
+      <li>H5 调用 <code>getProperties</code> 时</li>
+      <li>硬件状态发生变化时主动推送</li>
+      <li>H5 进入遥控页面连接建立时</li>
+    </ul>
+    <pre><code>// 期望的回传结构（通过 Properties Store 同步）
+{
+  "hardware": {
+    "suction_fan":  { "enable": 1, "vacuum_level": 3 },
+    "water_pump":   { "enable": 1, "spray_amount": 3, "work_interval": 5, "stop_interval": 2 },
+    "roller_brush": { "enable": 1, "direction": 1, "index": 1, "speed_level": 6 }
+  }
+}</code></pre>
+    <div class="note note-warn">
+      兼容性说明：H5 也兼容 <code>properties.suction_fan</code>（无 hardware 包裹层）的旧格式，但新实现请使用 <code>properties.hardware.suction_fan</code>。
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 手动喷水 ==================== -->
+<section id="sprayWater">
+  <h2><span class="badge badge-topic">Topic: sprayWater</span> 手动喷水</h2>
+
+  <div class="card">
+    <h4>协议定义</h4>
+    <table>
+      <tr><th>Topic</th><td><code>sprayWater</code></td></tr>
+      <tr><th>方向</th><td>H5 → 固件</td></tr>
+      <tr><th>加密</th><td>固件 &gt; 1.2.5 时加密</td></tr>
+      <tr><th>触发方式</th><td>用户点击喷水按钮</td></tr>
+      <tr><th>发送策略</th><td>单次发送</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>Payload 参数</h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>值</th><th>说明</th></tr>
+      <tr>
+        <td>direction</td>
+        <td><span class="type-tag type-string">string</span></td>
+        <td><code>"auto"</code></td>
+        <td>喷水方向，固定为自动</td>
+      </tr>
+    </table>
+    <pre><code>sendBluetoothData('sprayWater', { direction: 'auto' })</code></pre>
+  </div>
+</section>
+
+<!-- ==================== 清洁命令 ==================== -->
+<section id="clean">
+  <h2><span class="badge badge-topic">Topic: clean</span> 清洁命令</h2>
+
+  <div class="card">
+    <h4>协议定义</h4>
+    <table>
+      <tr><th>Topic</th><td><code>clean</code></td></tr>
+      <tr><th>方向</th><td>H5 → 固件</td></tr>
+      <tr><th>加密</th><td>固件 &gt; 1.2.5 时加密</td></tr>
+      <tr><th>触发方式</th><td>用户点击清洁控制按钮</td></tr>
+      <tr><th>封装函数</th><td><code>sendCleanCommand(act, content)</code> → <code>sendBluetoothData('clean', { act, content })</code></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>Payload 参数</h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      <tr>
+        <td>act</td>
+        <td><span class="type-tag type-string">string</span></td>
+        <td>是</td>
+        <td>清洁动作，取值见下表</td>
+      </tr>
+      <tr>
+        <td>content</td>
+        <td><span class="type-tag type-object">object</span></td>
+        <td>是</td>
+        <td>清洁参数对象</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>act 取值</h4>
+    <table>
+      <tr><th>值</th><th>含义</th><th>content 要求</th></tr>
+      <tr><td><code>start</code></td><td>开始清洁</td><td>需提供完整 content（type, direction 等）</td></tr>
+      <tr><td><code>pause</code></td><td>暂停清洁</td><td>content 从上次 start 的 workParams 自动继承</td></tr>
+      <tr><td><code>resume</code></td><td>继续清洁</td><td>content 从上次 start 的 workParams 自动继承</td></tr>
+      <tr><td><code>stop</code></td><td>停止清洁</td><td>content 可为空对象 <code>{}</code></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>content 参数</h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+      <tr>
+        <td>type</td>
+        <td><span class="type-tag type-string">string</span></td>
+        <td>—</td>
+        <td>清洁类型，取值见下表</td>
+      </tr>
+      <tr>
+        <td>border</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0</code></td>
+        <td>边框参数</td>
+      </tr>
+      <tr>
+        <td>direction</td>
+        <td><span class="type-tag type-string">string</span></td>
+        <td><code>"normal"</code></td>
+        <td>工作方向：<code>"left"</code> | <code>"right"</code> | <code>"normal"</code></td>
+      </tr>
+      <tr>
+        <td>windowType</td>
+        <td><span class="type-tag type-string">string</span></td>
+        <td><code>"inner"</code></td>
+        <td>窗户类型：<code>"inner"</code>（内窗） | <code>"outer"</code>（外窗）</td>
+      </tr>
+      <tr>
+        <td>duration</td>
+        <td><span class="type-tag type-number">number</span></td>
+        <td><code>0</code></td>
+        <td>持续时间（0 表示不限制）</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>type 清洁类型枚举</h4>
+    <table>
+      <tr><th>值</th><th>含义</th></tr>
+      <tr><td><code>auto</code></td><td>自动清扫</td></tr>
+      <tr><td><code>depth</code></td><td>深度清扫（分区清洁使用）</td></tr>
+      <tr><td><code>spot</code></td><td>定点清扫</td></tr>
+      <tr><td><code>border</code></td><td>沿边清扫</td></tr>
+      <tr><td><code>fine</code></td><td>精细清扫</td></tr>
+      <tr><td><code>bathroom</code></td><td>浴室清扫</td></tr>
+      <tr><td><code>heavy</code></td><td>重度清扫</td></tr>
+      <tr><td><code>zone</code></td><td>区域清扫</td></tr>
+      <tr><td><code>door</code></td><td>玻璃门清洁</td></tr>
+      <tr><td><code>remote</code></td><td>遥控模式</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>示例</h4>
+    <pre><code>// 开始深度清洁，向左，外窗
+sendBluetoothData('clean', {
+  act: 'start',
+  content: {
+    type: 'depth',
+    border: 0,
+    direction: 'left',
+    windowType: 'outer',
+    duration: 0
+  }
+})
+
+// 暂停
+sendBluetoothData('clean', { act: 'pause', content: { type:'depth', border:0, direction:'left', windowType:'outer', duration:0 } })
+
+// 停止
+sendBluetoothData('clean', { act: 'stop', content: {} })</code></pre>
+  </div>
+</section>
+
+<!-- ==================== 读取属性 ==================== -->
+<section id="getProperties">
+  <h2><span class="badge badge-topic">Topic: getProperties</span> 读取属性</h2>
+
+  <div class="card">
+    <h4>协议定义</h4>
+    <table>
+      <tr><th>Topic</th><td><code>getProperties</code></td></tr>
+      <tr><th>方向</th><td>H5 → 固件</td></tr>
+      <tr><th>加密</th><td>固件 &gt; 1.2.5 时加密</td></tr>
+      <tr><th>触发方式</th><td>H5 进入页面时 / 需要同步状态时</td></tr>
+      <tr><th>期望响应</th><td>固件应回传当前 Properties 全量状态（通过 MQTT 推送）</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>示例</h4>
+    <pre><code>// 查询当前属性
+sendBluetoothData('getProperties', {})
+// 或带特定查询参数
+sendBluetoothData('getProperties', { keys: ['hardware'] })</code></pre>
+  </div>
+</section>
+
+<!-- ==================== 摇杆旧 ==================== -->
+<section id="wheelMove">
+  <h2><span class="badge badge-legacy">Topic: wheelMove</span> 摇杆移动 (旧协议，仅参考)</h2>
+
+  <div class="card">
+    <p>本版遥控页已用方向键（<code>move</code> topic）替代摇杆。以下为旧全向摇杆协议，保留供参考，<strong>固件侧仍需支持</strong>因其他页面可能调用。</p>
+    <table>
+      <tr><th>Topic</th><td><code>wheelMove</code></td></tr>
+      <tr><th>加密</th><td>豁免（不加密）</td></tr>
+      <tr><th>发送策略</th><td>100ms 轮询</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>Payload 参数</h4>
+    <table>
+      <tr><th>参数</th><th>类型</th><th>范围</th><th>说明</th></tr>
+      <tr><td>angle</td><td><span class="type-tag type-number">number</span></td><td>0 ~ 360</td><td>摇杆角度（度）</td></tr>
+      <tr><td>speed</td><td><span class="type-tag type-number">number</span></td><td>1 ~ 3</td><td>速度档位（遥控页固定为 2）</td></tr>
+      <tr><td>act</td><td><span class="type-tag type-string">string</span></td><td><code>"move"</code></td><td>动作类型，固定值</td></tr>
+    </table>
+    <pre><code>// 摇杆推到 90°方向，2档速度
+sendBluetoothData('wheelMove', { angle: 90, speed: 2, act: 'move' })</code></pre>
+    <div class="note">
+      外窗模式下 angle 会做 <code>360 - degree</code> 的映射转换。
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 时序流程 ==================== -->
+<section id="flows">
+  <h2>时序流程</h2>
+
+  <div class="card">
+    <h4>方向键按下 → 松手</h4>
+    <div class="flow-step"><span class="flow-label">1</span> 用户按下「前进」→ <code>onDirectionPadMove({ direction: 'forward' })</code></div>
+    <div class="flow-step"><span class="flow-label">2</span> 检查 <code>isAdsorption</code>（未吸附不发送）</div>
+    <div class="flow-step"><span class="flow-label">3</span> 外窗判断：若 <code>windowType === 'outer'</code>，left↔right 互换</div>
+    <div class="flow-step"><span class="flow-label">4</span> 立即发送 <code>sendBluetoothData('move', { act })</code></div>
+    <div class="flow-step"><span class="flow-label">5</span> 启动 100ms 定时器，重复发送同一条 <code>move</code></div>
+    <div class="flow-step"><span class="flow-label">6</span> 用户松手 → <code>onDirectionPadStop()</code> → 清除定时器，停止发送</div>
+  </div>
+
+  <div class="card">
+    <h4>硬件属性修改</h4>
+    <div class="flow-step"><span class="flow-label">1</span> 用户操作 UI 控件（开关/滑块/按钮）</div>
+    <div class="flow-step"><span class="flow-label">2</span> 组件更新本地 ref 状态</div>
+    <div class="flow-step"><span class="flow-label">3</span> 调用 <code>setProperties({ hardware: { 模块: { ...全量字段 } } })</code></div>
+    <div class="flow-step"><span class="flow-label">4</span> 框架自动注入 ts + seq，判断是否需要加密</div>
+    <div class="flow-step"><span class="flow-label">5</span> 发送 BLE → 固件接收 → 执行 → 回传状态</div>
+    <div class="flow-step"><span class="flow-label">6</span> H5 通过 <code>watch(Properties)</code> 监听回传，同步 UI</div>
+  </div>
+
+  <div class="card">
+    <h4>加密流程（固件 &gt; 1.2.5）</h4>
+    <div class="flow-step"><span class="flow-label">1</span> <code>sendBluetoothData(topic, payload)</code> 被调用</div>
+    <div class="flow-step"><span class="flow-label">2</span> 检查 <code>isBluetoothNeedEncrypt</code> &amp;&amp; <code>enterprisePSK</code> 是否有效</div>
+    <div class="flow-step"><span class="flow-label">3</span> 固件版本 &gt; 1.2.5：判断 topic 是否在豁免列表</div>
+    <div class="flow-step"><span class="flow-label">4</span> 非豁免 → <code>redCryptoManager.encryptAESCCM(payload)</code> → 得到 <code>{ encrypted: ... }</code></div>
+    <div class="flow-step"><span class="flow-label">5</span> 加密后的数据通过 MQTT 发送</div>
+    <div class="flow-step"><span class="flow-label">6</span> 固件：收到后 AES-CCM 解密 → JSON.parse → 处理指令</div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>
