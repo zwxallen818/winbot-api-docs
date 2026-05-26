@@ -26,6 +26,8 @@
   code { font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; background: var(--c-code-bg); padding: 1px 4px; border-radius: 3px; }
   pre code { background: none; padding: 0; }
   .note { background: #fff8e1; border-left: 3px solid #ffb300; padding: 8px 12px; font-size: 12px; margin: 10px 0; border-radius: 0 5px 5px 0; }
+  .badge-send { background: #e8f5e9; color: #2e7d32; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; margin-right: 4px; }
+  .badge-recv { background: #e3f2fd; color: #1565c0; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; margin-right: 4px; }
   @media (max-width: 600px) {
     main { padding: 18px 10px 40px; }
     .card { padding: 12px 14px; }
@@ -52,8 +54,31 @@
       <tr><td>ts</td><td><span class="type-num">number</span></td><td>Unix 秒级时间戳</td></tr>
       <tr><td>seq</td><td><span class="type-num">number</span></td><td>0~999 循环递增的序列号</td></tr>
     </table>
+  </div>
+
+  <div class="card">
+    <h4>Hardware 协议规范</h4>
+    <p>所有硬件控制指令<strong>统一使用 <code>hardware</code> 键包裹</strong>，收发结构一致：</p>
+    <table>
+      <tr><th>方向</th><th>Topic</th><th>数据结构</th></tr>
+      <tr>
+        <td><span class="badge-send">发送</span></td>
+        <td><code>setProperties</code></td>
+        <td><code>{ hardware: { 模块名: { ... } } }</code></td>
+      </tr>
+      <tr>
+        <td><span class="badge-recv">接收</span></td>
+        <td><code>onProperties</code></td>
+        <td><code>{ hardware: { 模块名: { ... } } }</code></td>
+      </tr>
+    </table>
+    <div class="note">
+      <strong>重要：</strong><code>onProperties</code> 是设备主动上报的状态变更通知，结构为
+      <code>{ hardware: { suction_fan: {...}, roller_brush: {...}, ... } }</code>，
+      H5 收到后按 <code>hardware.模块名</code> 路径读取并更新 UI。
+    </div>
     <p style="margin-top:10px;font-size:12px;color:var(--c-text-secondary)">
-      <code>move</code> 不加密；<code>setProperties</code> 在固件 &gt; 1.2.5 时会 AES-CCM 加密后再传输。
+      <code>move</code> 不加密；<code>setProperties</code> 和 <code>onProperties</code> 在固件 &gt; 1.2.5 时会 AES-CCM 加密后再传输。
     </p>
   </div>
 </section>
@@ -89,49 +114,61 @@
 
 <!-- ====== 吸附风机 ====== -->
 <section>
-  <h2>2. 吸附风机 <code style="font-size:14px">setProperties → suction_fan</code></h2>
+  <h2>2. 吸附风机 <code style="font-size:14px">setProperties → hardware.suction_fan</code></h2>
 
   <div class="card">
     <table>
       <tr><th>Topic</th><td><code>setProperties</code></td></tr>
+      <tr><th>数据路径</th><td><code>hardware.suction_fan</code></td></tr>
       <tr><th>加密</th><td>固件 &gt; 1.2.5 时加密</td></tr>
       <tr><th>策略</th><td>用户操作开关时单次发送，全量覆盖</td></tr>
     </table>
   </div>
 
   <div class="card">
-    <h4>Payload</h4>
+    <h4>发送 Payload</h4>
     <table>
       <tr><th>参数</th><th>类型</th><th>取值</th><th>说明</th></tr>
       <tr><td>enable</td><td><span class="type-num">number</span></td><td>0 | 1</td><td>0=关，1=开</td></tr>
       <tr><td>vacuum_level</td><td><span class="type-num">number</span></td><td>1 ~ 5</td><td>吸力档位，默认 3</td></tr>
     </table>
-    <pre><code>// 打开
+    <pre><code>// 发送 — 打开吸附风机
 sendBluetoothData('setProperties', {
   hardware: { suction_fan: { enable: 1, vacuum_level: 3 } }
 })
 
-// 关闭
+// 发送 — 关闭
 sendBluetoothData('setProperties', {
   hardware: { suction_fan: { enable: 0, vacuum_level: 3 } }
 })</code></pre>
+  </div>
+
+  <div class="card">
+    <h4>接收 onProperties 响应</h4>
+    <pre><code>// 设备上报 — 结构与发送一致，从 hardware.suction_fan 读取
+{
+  "hardware": {
+    "suction_fan": { "enable": 1, "vacuum_level": 3 }
+  }
+}</code></pre>
   </div>
 </section>
 
 <!-- ====== 滚刷 ====== -->
 <section>
-  <h2>3. 滚刷 <code style="font-size:14px">setProperties → roller_brush</code></h2>
+  <h2>3. 滚刷 <code style="font-size:14px">setProperties → hardware.roller_brush</code></h2>
 
   <div class="card">
     <table>
       <tr><th>Topic</th><td><code>setProperties</code></td></tr>
+      <tr><th>数据路径</th><td><code>hardware.roller_brush</code></td></tr>
       <tr><th>加密</th><td>固件 &gt; 1.2.5 时加密</td></tr>
       <tr><th>策略</th><td>用户操作时单次发送，全量覆盖</td></tr>
     </table>
   </div>
 
   <div class="card">
-    <h4>Payload</h4>
+    <h4>发送 Payload</h4>
     <table>
       <tr><th>参数</th><th>类型</th><th>取值</th><th>说明</th></tr>
       <tr><td>enable</td><td><span class="type-num">number</span></td><td>0 | 1</td><td>0=关，1=开</td></tr>
@@ -139,20 +176,63 @@ sendBluetoothData('setProperties', {
       <tr><td>index</td><td><span class="type-num">number</span></td><td>1 | 2</td><td>1=前滚刷，2=后滚刷</td></tr>
       <tr><td>speed_level</td><td><span class="type-num">number</span></td><td>1 ~ 10</td><td>转速档位，实际 RPM = 档位 × 10，默认 6 (60rpm)</td></tr>
     </table>
-    <pre><code>// 前滚刷正转，6档（60rpm）
+    <pre><code>// 发送 — 前滚刷正转，6档（60rpm）
 sendBluetoothData('setProperties', {
   hardware: { roller_brush: { enable: 1, direction: 1, index: 1, speed_level: 6 } }
 })
 
-// 后滚刷反转，8档（80rpm）
+// 发送 — 后滚刷反转，8档（80rpm）
 sendBluetoothData('setProperties', {
   hardware: { roller_brush: { enable: 1, direction: 2, index: 2, speed_level: 8 } }
 })
 
-// 关闭滚刷
+// 发送 — 关闭滚刷
 sendBluetoothData('setProperties', {
   hardware: { roller_brush: { enable: 0, direction: 1, index: 1, speed_level: 6 } }
 })</code></pre>
+  </div>
+
+  <div class="card">
+    <h4>接收 onProperties 响应</h4>
+    <pre><code>// 设备上报 — 结构与发送一致，从 hardware.roller_brush 读取
+{
+  "hardware": {
+    "roller_brush": { "enable": 0, "direction": 1, "index": 1, "speed_level": 6 }
+  }
+}</code></pre>
+  </div>
+</section>
+
+<!-- ====== onProperties 完整示例 ====== -->
+<section>
+  <h2>4. 设备上报 <code style="font-size:14px">onProperties</code>（完整示例）</h2>
+
+  <div class="card">
+    <table>
+      <tr><th>Topic</th><td><code>onProperties</code></td></tr>
+      <tr><th>方向</th><td>设备 → H5（主动推送）</td></tr>
+      <tr><th>加密</th><td>固件 &gt; 1.2.5 时加密</td></tr>
+      <tr><th>触发时机</th><td>设备状态变化时主动上报</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h4>完整 Payload 结构</h4>
+    <pre><code>{
+  "hardware": {
+    "suction_fan":  { "enable": 1, "vacuum_level": 3 },
+    "roller_brush": { "enable": 1, "direction": 1, "index": 1, "speed_level": 6 },
+    "water_pump":   { "enable": 0, "spray_amount": 3, "work_interval": 5, "stop_interval": 3 },
+    "drive_motor":  { "enable": 1, "speed_level": 5 },
+    "pressure": 1,
+    "current": 1
+  }
+}</code></pre>
+    <div class="note">
+      <strong>H5 侧处理：</strong>收到 <code>onProperties</code> 后，
+      从 <code>data.hardware.模块名</code> 路径读取各模块状态，
+      深度合并入本地 <code>store.Properties.hardware</code>，触发 UI 更新。
+    </div>
   </div>
 </section>
 
